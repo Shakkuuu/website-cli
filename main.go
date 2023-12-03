@@ -15,9 +15,9 @@ func main() {
 	var err error
 
 	// フラグ定義
-	urlFlag := flag.String("url", "", "開きたいWebサイトの(https://から始まる)URLを入力してください")
-	siteFlag := flag.String("site", "", "開きたいサイト名(Twitter,ニコニコ動画,YouTube,GitHub,Classroom)を入力してください")
-	searchFlag := flag.String("search", "", "検索したい用語を入力してください。")
+	urlFlag := flag.String("url", "", "開きたいWebサイトの(https://から始まる)URLを入力してください。")
+	siteFlag := flag.String("site", "", "開きたいサイト名(Twitter,ニコニコ動画,YouTube,GitHub,Classroom)を入力してください。")
+	searchFlag := flag.String("search", "", "検索したい用語を入力してください。スペースを入れて検索したい場合は、クオーテーションで囲むか単語+でつないでください。")
 	flag.Parse()
 
 	UsingOSCmd, err = OSCheck()
