@@ -69,7 +69,8 @@ website-cli [-search 検索したい用語][site サイト名][url URL]
     }
 ]
 
-```:
+```
+
 　配列のjsonで、`url`と`sitename`の項目が必要。
 　`sitename`はstringの配列となっている。
 　`url`には、そのサイトのURL、`sitename`には、コマンドを使用する際に実行できるようにしたいサイト名を設定する。
