@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 )
 
@@ -27,18 +28,32 @@ func main() {
 	searchFlag := flag.String("search", "", "検索したい用語を入力してください。スペースを入れて検索したい場合は、クオーテーションで囲むか単語+でつないでください。")
 	flag.Parse()
 
+	// 実行ファイルのパスを取得
+	exePath, err := os.Executable()
+	if err != nil {
+		log.Fatal("os.Executable err:", err)
+	}
+
+	// 実行ファイルのディレクトリのパスに変換
+	exeDir := filepath.Dir(exePath)
+
+	// ディレクトリのパスに読み込む設定ファイルの名前を追加
+	settingfilePath := filepath.Join(exeDir, "website-cli-setting.json")
+
 	// 設定ファイル読み込み
-	f, err := os.ReadFile("./website-cli-setting.json")
+	f, err := os.ReadFile(settingfilePath)
 	if err != nil {
 		log.Fatal("os.ReadFile err:", err)
 	}
 
+	// json読み込み
 	var sl []SiteList
 	err = json.Unmarshal(f, &sl)
 	if err != nil {
 		log.Fatal("json.Unmarshal err:", err)
 	}
 
+	// 使用しているOS確認
 	UsingOSCmd, err = OSCheck()
 	if err != nil {
 		fmt.Println(err)
