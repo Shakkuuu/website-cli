@@ -1,13 +1,20 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"runtime"
 )
+
+type SiteList struct {
+	Url      string   `json:"url"`
+	Sitename []string `json:"sitename"`
+}
 
 func main() {
 	var cmd *exec.Cmd
@@ -16,9 +23,21 @@ func main() {
 
 	// フラグ定義
 	urlFlag := flag.String("url", "", "開きたいWebサイトの(https://から始まる)URLを入力してください。")
-	siteFlag := flag.String("site", "", "開きたいサイト名(Twitter,ニコニコ動画,YouTube,GitHub,Classroom)を入力してください。")
+	siteFlag := flag.String("site", "", "(website-cli-setting.jsonで登録した)開きたいサイト名を入力してください。")
 	searchFlag := flag.String("search", "", "検索したい用語を入力してください。スペースを入れて検索したい場合は、クオーテーションで囲むか単語+でつないでください。")
 	flag.Parse()
+
+	// 設定ファイル読み込み
+	f, err := os.ReadFile("./website-cli-setting.json")
+	if err != nil {
+		log.Fatal("os.ReadFile err:", err)
+	}
+
+	var sl []SiteList
+	err = json.Unmarshal(f, &sl)
+	if err != nil {
+		log.Fatal("json.Unmarshal err:", err)
+	}
 
 	UsingOSCmd, err = OSCheck()
 	if err != nil {
@@ -28,7 +47,7 @@ func main() {
 
 	if *siteFlag != "" {
 		// サイト名選択
-		cmd, err = Site(siteFlag, UsingOSCmd)
+		cmd, err = Site(siteFlag, UsingOSCmd, sl)
 		if err != nil {
 			fmt.Println(err)
 			flag.PrintDefaults()
@@ -93,27 +112,17 @@ func OSCheck() (string, error) {
 	}
 }
 
-func Site(siteFlag *string, UsingOSCmd string) (*exec.Cmd, error) {
+func Site(siteFlag *string, UsingOSCmd string, sitelist []SiteList) (*exec.Cmd, error) {
 	// サイト名選択
-	switch {
-	case *siteFlag == "twitter" || *siteFlag == "Twitter" || *siteFlag == "x" || *siteFlag == "X" || *siteFlag == "ツイッター" || *siteFlag == "ついったー":
-		cmd := exec.Command(UsingOSCmd, "https://twitter.com")
-		return cmd, nil
-	case *siteFlag == "niconico" || *siteFlag == "ニコニコ" || *siteFlag == "ニコニコ動画" || *siteFlag == "にこにこ" || *siteFlag == "にこにこどうが" || *siteFlag == "ニコ動" || *siteFlag == "nikoniko":
-		cmd := exec.Command(UsingOSCmd, "https://www.nicovideo.jp")
-		return cmd, nil
-	case *siteFlag == "youtube" || *siteFlag == "YouTube" || *siteFlag == "ようつべ" || *siteFlag == "ユーチューブ":
-		cmd := exec.Command(UsingOSCmd, "https://www.youtube.com")
-		return cmd, nil
-	case *siteFlag == "github" || *siteFlag == "GitHub" || *siteFlag == "ギットハブ" || *siteFlag == "ぎっとはぶ":
-		cmd := exec.Command(UsingOSCmd, "https://github.com")
-		return cmd, nil
-	case *siteFlag == "classroom" || *siteFlag == "Classroom" || *siteFlag == "クラスルーム" || *siteFlag == "くらするーむ":
-		cmd := exec.Command(UsingOSCmd, "https://classroom.google.com")
-		return cmd, nil
-	default:
-		return nil, errors.New("登録されていないサイト名です")
+	for _, site := range sitelist {
+		for _, sn := range site.Sitename {
+			if *siteFlag == sn {
+				cmd := exec.Command(UsingOSCmd, site.Url)
+				return cmd, nil
+			}
+		}
 	}
+	return nil, errors.New("登録されていないサイト名です")
 }
 
 func Url(urlFlag *string, UsingOSCmd string) (*exec.Cmd, error) {
